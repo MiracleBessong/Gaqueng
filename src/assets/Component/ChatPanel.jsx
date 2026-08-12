@@ -19,7 +19,9 @@ function MessageBubble({ message, mine }) {
               : "Everyone"}
           </span>
         </div>
-        <p className="`break-words text-sm leading-relaxed">{message.text}</p>
+        <p className="break-words text-sm leading-relaxed">
+          {mine ? message.text : message.translated || message.text}
+        </p>
       </div>
     </div>
   );

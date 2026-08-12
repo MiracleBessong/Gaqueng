@@ -166,204 +166,223 @@ export default function RoomScreen({
   }, [stopMic]);
 
   useEffect(() => {
-      let cancelled = false;   // scoped to THIS effect run only
-      let localRoom = null;    // the Room instance THIS run creates
-      mountedRef.current = true;
+    let cancelled = false; // scoped to THIS effect run only
+    let localRoom = null; // the Room instance THIS run creates
+    mountedRef.current = true;
 
-      const connectRoom = async () => {
-        try {
-          const token = await fetchLiveKitToken(roomCode, name);
-          if (cancelled) return; // cleaned up while the token request was in flight
+    const connectRoom = async () => {
+      try {
+        const token = await fetchLiveKitToken(roomCode, name);
+        if (cancelled) return; // cleaned up while the token request was in flight
 
-          const room = new Room({ adaptiveStream: true, dynacast: true });
-          localRoom = room;
-          roomRef.current = room;
+        const room = new Room({ adaptiveStream: true, dynacast: true });
+        localRoom = room;
+        roomRef.current = room;
 
-          const syncParticipants = () => {
-            if (cancelled) return;
-            updateParticipants();
-          };
+        const syncParticipants = () => {
+          if (cancelled) return;
+          updateParticipants();
+        };
 
-          room.on(RoomEvent.ParticipantConnected, syncParticipants);
-          room.on(RoomEvent.ParticipantDisconnected, syncParticipants);
-          room.on(RoomEvent.TrackPublished, syncParticipants);
-          room.on(RoomEvent.TrackUnpublished, syncParticipants);
-          room.on(RoomEvent.TrackSubscribed, syncParticipants);
-          room.on(RoomEvent.TrackUnsubscribed, syncParticipants);
-          room.on(RoomEvent.LocalTrackPublished, syncParticipants);
-          room.on(RoomEvent.LocalTrackUnpublished, syncParticipants);
+        room.on(RoomEvent.ParticipantConnected, syncParticipants);
+        room.on(RoomEvent.ParticipantDisconnected, syncParticipants);
+        room.on(RoomEvent.TrackPublished, syncParticipants);
+        room.on(RoomEvent.TrackUnpublished, syncParticipants);
+        room.on(RoomEvent.TrackSubscribed, syncParticipants);
+        room.on(RoomEvent.TrackUnsubscribed, syncParticipants);
+        room.on(RoomEvent.LocalTrackPublished, syncParticipants);
+        room.on(RoomEvent.LocalTrackUnpublished, syncParticipants);
 
-          room.on(RoomEvent.Reconnecting, () => {
-            if (cancelled) return;
-            setConnected(false);
-          });
+        room.on(RoomEvent.Reconnecting, () => {
+          if (cancelled) return;
+          setConnected(false);
+        });
 
-          room.on(RoomEvent.Reconnected, () => {
-            if (cancelled) return;
-            setConnected(true);
-            updateParticipants();
-          });
-
-          room.on(RoomEvent.Disconnected, () => {
-            if (cancelled) return;
-            setConnected(false);
-            setScreenSharing(false);
-            setVideoEnabled(false);
-          });
-
-          room.on(RoomEvent.ParticipantConnected, async () => {
-            await broadcastData("meta", {
-              type: "lang",
-              name,
-              lang: myLangRef.current,
-            });
-          });
-
-          room.on(
-            RoomEvent.DataReceived,
-            async (payload, _participant, _kind, topic) => {
-              if (cancelled) return;
-              const decoded = new TextDecoder().decode(payload);
-
-              if (topic === "transcript") {
-                const msg = JSON.parse(decoded);
-                setHistory((h) => [...h, msg]);
-                setStage("translating");
-
-                const translated = await translateRef.current(
-                  msg.original,
-                  msg.sourceLang,
-                  myLangRef.current,
-                );
-
-                setHistory((h) =>
-                  h.map((m) => (m === msg ? { ...m, translated } : m)),
-                );
-
-                setStage("speaking");
-                await speakRef.current(translated, myLangRef.current);
-                if (!cancelled) setStage("idle");
-                return;
-              }
-
-              if (topic === "hand") {
-                const { identity, raised } = JSON.parse(decoded);
-                setRaisedHands((h) => ({ ...h, [identity]: raised }));
-                return;
-              }
-
-              if (topic === "reaction") {
-                const { emoji } = JSON.parse(decoded);
-                pushReaction(emoji);
-                return;
-              }
-
-              if (topic === "chat") {
-                const message = JSON.parse(decoded);
-                const me = room.localParticipant.identity;
-                const visibleToMe =
-                  message.scope !== "private" ||
-                  message.sender === me ||
-                  message.to === me;
-
-                if (visibleToMe) {
-                  setChatMessages((messages) => [...messages, message]);
-                }
-                return;
-              }
-
-              if (topic === "poll-create") {
-                const poll = JSON.parse(decoded);
-                setPolls((items) => {
-                  const exists = items.some((item) => item.id === poll.id);
-                  return exists ? items : [...items, poll];
-                });
-                return;
-              }
-
-              if (topic === "poll-vote") {
-                const { pollId, voter, option } = JSON.parse(decoded);
-                setPolls((items) =>
-                  items.map((poll) =>
-                    poll.id === pollId
-                      ? {
-                          ...poll,
-                          votes: {
-                            ...poll.votes,
-                            [voter]: option,
-                          },
-                        }
-                      : poll,
-                  ),
-                );
-                return;
-              }
-
-              if (topic === "poll-close") {
-                const { pollId } = JSON.parse(decoded);
-                setPolls((items) =>
-                  items.map((poll) =>
-                    poll.id === pollId ? { ...poll, status: "closed" } : poll,
-                  ),
-                );
-              }
-            },
-          );
-
-          await room.connect(import.meta.env.VITE_LIVEKIT_URL, token);
-
-          if (cancelled) {
-            room.disconnect();
-            return;
-          }
-
+        room.on(RoomEvent.Reconnected, () => {
+          if (cancelled) return;
           setConnected(true);
           updateParticipants();
+        });
 
-          try {
-            await room.localParticipant.setCameraEnabled(true);
-            if (!cancelled) setVideoEnabled(true);
-          } catch (cameraError) {
-            console.error("Camera start failed", cameraError);
-            if (!cancelled) setVideoEnabled(false);
-          }
+        room.on(RoomEvent.Disconnected, () => {
+          if (cancelled) return;
+          setConnected(false);
+          setScreenSharing(false);
+          setVideoEnabled(false);
+        });
 
-          try {
-            await room.localParticipant.setMicrophoneEnabled(false);
-          } catch (micError) {
-            console.error("Microphone init failed", micError);
-          }
-        } catch (e) {
-          console.error(e);
-          if (!cancelled) {
-            setError(e.message || "Connection failed");
-          }
+        room.on(RoomEvent.ParticipantConnected, async () => {
+          await broadcastData("meta", {
+            type: "lang",
+            name,
+            lang: myLangRef.current,
+          });
+        });
+
+        room.on(
+          RoomEvent.DataReceived,
+          async (payload, _participant, _kind, topic) => {
+            if (cancelled) return;
+            const decoded = new TextDecoder().decode(payload);
+
+            if (topic === "transcript") {
+              const msg = JSON.parse(decoded);
+              setHistory((h) => [...h, msg]);
+              setStage("translating");
+
+              const translated = await translateRef.current(
+                msg.original,
+                msg.sourceLang,
+                myLangRef.current,
+              );
+
+              setHistory((h) =>
+                h.map((m) => (m === msg ? { ...m, translated } : m)),
+              );
+
+              setStage("speaking");
+              await speakRef.current(translated, myLangRef.current);
+              if (!cancelled) setStage("idle");
+              return;
+            }
+
+            if (topic === "hand") {
+              const { identity, raised } = JSON.parse(decoded);
+              setRaisedHands((h) => ({ ...h, [identity]: raised }));
+              return;
+            }
+
+            if (topic === "reaction") {
+              const { emoji } = JSON.parse(decoded);
+              pushReaction(emoji);
+              return;
+            }
+
+            if (topic === "chat") {
+              const message = JSON.parse(decoded);
+              const me = room.localParticipant.identity;
+              const visibleToMe =
+                message.scope !== "private" ||
+                message.sender === me ||
+                message.to === me;
+
+              if (visibleToMe) {
+                // Don't translate our own outgoing message — it's already
+                // in our language, and it's added locally in handleSendChat.
+                if (message.sender === me) return;
+
+                let translated = message.text;
+                if (
+                  message.sourceLang &&
+                  message.sourceLang !== myLangRef.current
+                ) {
+                  translated = await translateRef.current(
+                    message.text,
+                    message.sourceLang,
+                    myLangRef.current,
+                  );
+                }
+
+                setChatMessages((messages) => [
+                  ...messages,
+                  { ...message, translated },
+                ]);
+              }
+              return;
+            }
+
+            if (topic === "poll-create") {
+              const poll = JSON.parse(decoded);
+              setPolls((items) => {
+                const exists = items.some((item) => item.id === poll.id);
+                return exists ? items : [...items, poll];
+              });
+              return;
+            }
+
+            if (topic === "poll-vote") {
+              const { pollId, voter, option } = JSON.parse(decoded);
+              setPolls((items) =>
+                items.map((poll) =>
+                  poll.id === pollId
+                    ? {
+                        ...poll,
+                        votes: {
+                          ...poll.votes,
+                          [voter]: option,
+                        },
+                      }
+                    : poll,
+                ),
+              );
+              return;
+            }
+
+            if (topic === "poll-close") {
+              const { pollId } = JSON.parse(decoded);
+              setPolls((items) =>
+                items.map((poll) =>
+                  poll.id === pollId ? { ...poll, status: "closed" } : poll,
+                ),
+              );
+            }
+          },
+        );
+
+        await room.connect(import.meta.env.VITE_LIVEKIT_URL, token);
+
+        if (cancelled) {
+          room.disconnect();
+          return;
         }
-      };
 
-      connectRoom();
-
-      return () => {
-        cancelled = true;
-        mountedRef.current = false;
-        stopMicRef.current?.();
-        stopSpeakRef.current?.();
+        setConnected(true);
+        updateParticipants();
 
         try {
-          screenTrackRef.current?.stop?.();
-          screenTrackRef.current?.mediaStreamTrack?.stop?.();
-        } catch (e) {
-          console.warn("Screen track cleanup failed", e);
+          await room.localParticipant.setCameraEnabled(true);
+          if (!cancelled) setVideoEnabled(true);
+        } catch (cameraError) {
+          console.error("Camera start failed", cameraError);
+          if (!cancelled) setVideoEnabled(false);
         }
 
-        // Only disconnect the Room THIS run created — never a Room a
-        // different (e.g. later) effect run may have already put in roomRef.
-        localRoom?.disconnect();
-        if (roomRef.current === localRoom) {
-          roomRef.current = null;
+        try {
+          await room.localParticipant.setMicrophoneEnabled(false);
+        } catch (micError) {
+          console.error("Microphone init failed", micError);
         }
-      };
-    }, [broadcastData, name, roomCode, updateParticipants, pushReaction]);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setError(e.message || "Connection failed");
+        }
+      }
+    };
+
+    connectRoom();
+
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      stopMicRef.current?.();
+      stopSpeakRef.current?.();
+
+      try {
+        screenTrackRef.current?.stop?.();
+        screenTrackRef.current?.mediaStreamTrack?.stop?.();
+      } catch (e) {
+        console.warn("Screen track cleanup failed", e);
+      }
+
+      // Only disconnect the Room THIS run created — never a Room a
+      // different (e.g. later) effect run may have already put in roomRef.
+      localRoom?.disconnect();
+      if (roomRef.current === localRoom) {
+        roomRef.current = null;
+      }
+    };
+  }, [broadcastData, name, roomCode, updateParticipants, pushReaction]);
 
   const handleMicClick = () => {
     if (speaking) {
@@ -418,6 +437,7 @@ export default function RoomScreen({
       id: `${Date.now()}-${chatMessageId++}`,
       sender: name,
       text,
+      sourceLang: myLangRef.current,
       scope,
       to: scope === "private" ? to : undefined,
       ts: Date.now(),
@@ -428,91 +448,91 @@ export default function RoomScreen({
   };
 
   const handleToggleScreenShare = async () => {
-      const room = roomRef.current;
-      if (!isRoomReady(room)) return;
+    const room = roomRef.current;
+    if (!isRoomReady(room)) return;
 
-      if (screenTrackRef.current) {
-        const trackToStop = screenTrackRef.current;
-        // Reset local truth immediately — even if unpublish below fails,
-        // we never want to get stuck re-entering the "stop" branch forever.
-        screenTrackRef.current = null;
-
-        try {
-          await room.localParticipant.unpublishTrack(trackToStop);
-        } catch (e) {
-          console.error("Failed to unpublish screen share", e);
-        } finally {
-          try {
-            trackToStop.mediaStreamTrack?.stop?.();
-            trackToStop.stop?.();
-          } catch (e) {
-            console.warn("Screen track cleanup failed", e);
-          }
-          setScreenSharing(false);
-          updateParticipants();
-        }
-        return;
-      }
+    if (screenTrackRef.current) {
+      const trackToStop = screenTrackRef.current;
+      // Reset local truth immediately — even if unpublish below fails,
+      // we never want to get stuck re-entering the "stop" branch forever.
+      screenTrackRef.current = null;
 
       try {
-        const tracks = await room.localParticipant.createScreenTracks({
-          audio: false,
-        });
-
-        const track = Array.isArray(tracks) ? tracks[0] : tracks;
-        if (!track) return;
-
-        screenTrackRef.current = track;
-
-        const mediaStreamTrack = track.mediaStreamTrack;
-        if (mediaStreamTrack) {
-          mediaStreamTrack.onended = async () => {
-            const trackToStop = screenTrackRef.current;
-            screenTrackRef.current = null;
-
-            try {
-              if (trackToStop && isRoomReady(roomRef.current)) {
-                await roomRef.current.localParticipant.unpublishTrack(
-                  trackToStop,
-                );
-              }
-            } catch (e) {
-              console.error("Failed to stop screen share after end", e);
-            } finally {
-              try {
-                trackToStop?.stop?.();
-                trackToStop?.mediaStreamTrack?.stop?.();
-              } catch (e) {
-                console.warn("Failed to stop screen cleanup", e);
-              }
-              setScreenSharing(false);
-              updateParticipants();
-            }
-          };
-        }
-
-        await room.localParticipant.publishTrack(track, {
-          source: Track.Source.ScreenShare,
-        });
-
-        setScreenSharing(true);
-        updateParticipants();
+        await room.localParticipant.unpublishTrack(trackToStop);
       } catch (e) {
-        console.error("Failed to start screen share", e);
-        // publishTrack or createScreenTracks failed — make sure we don't
-        // leave a half-created track referenced.
-        if (screenTrackRef.current) {
-          try {
-            screenTrackRef.current.stop?.();
-            screenTrackRef.current.mediaStreamTrack?.stop?.();
-          } catch (e){
-            console.error(e)
-          }
-          screenTrackRef.current = null;
+        console.error("Failed to unpublish screen share", e);
+      } finally {
+        try {
+          trackToStop.mediaStreamTrack?.stop?.();
+          trackToStop.stop?.();
+        } catch (e) {
+          console.warn("Screen track cleanup failed", e);
         }
         setScreenSharing(false);
+        updateParticipants();
       }
-    };
+      return;
+    }
+
+    try {
+      const tracks = await room.localParticipant.createScreenTracks({
+        audio: false,
+      });
+
+      const track = Array.isArray(tracks) ? tracks[0] : tracks;
+      if (!track) return;
+
+      screenTrackRef.current = track;
+
+      const mediaStreamTrack = track.mediaStreamTrack;
+      if (mediaStreamTrack) {
+        mediaStreamTrack.onended = async () => {
+          const trackToStop = screenTrackRef.current;
+          screenTrackRef.current = null;
+
+          try {
+            if (trackToStop && isRoomReady(roomRef.current)) {
+              await roomRef.current.localParticipant.unpublishTrack(
+                trackToStop,
+              );
+            }
+          } catch (e) {
+            console.error("Failed to stop screen share after end", e);
+          } finally {
+            try {
+              trackToStop?.stop?.();
+              trackToStop?.mediaStreamTrack?.stop?.();
+            } catch (e) {
+              console.warn("Failed to stop screen cleanup", e);
+            }
+            setScreenSharing(false);
+            updateParticipants();
+          }
+        };
+      }
+
+      await room.localParticipant.publishTrack(track, {
+        source: Track.Source.ScreenShare,
+      });
+
+      setScreenSharing(true);
+      updateParticipants();
+    } catch (e) {
+      console.error("Failed to start screen share", e);
+      // publishTrack or createScreenTracks failed — make sure we don't
+      // leave a half-created track referenced.
+      if (screenTrackRef.current) {
+        try {
+          screenTrackRef.current.stop?.();
+          screenTrackRef.current.mediaStreamTrack?.stop?.();
+        } catch (e) {
+          console.error(e);
+        }
+        screenTrackRef.current = null;
+      }
+      setScreenSharing(false);
+    }
+  };
 
   const handleRecordToggle = async () => {
     if (recording) {

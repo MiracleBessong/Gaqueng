@@ -1,5 +1,4 @@
-import { SparklesIcon } from "@heroicons/react/24/solid";
-import { ArrowRight, LogIn, PlusCircle, User } from "lucide-react";
+import { ArrowRight, LogIn, PlusCircle, User, Video } from "lucide-react";
 import { useState } from "react";
 import LanguageSelector from "./LanguageSelector";
 
@@ -26,11 +25,11 @@ export default function JoinScreen({ onJoin }) {
       >
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 text-white shadow-[0_12px_30px_rgba(99,102,241,0.35)]">
-            <SparklesIcon className="h-6 w-6" />
+            <Video className="h-6 w-6" />
           </div>
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-              Join a translated call
+              Gagueng
             </h2>
             <p className="text-sm text-slate-500">
               Create or enter a multilingual meeting room in seconds.
