@@ -5,6 +5,13 @@
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Segoe UI", sans-serif;
 }
+
+html {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+}
+
 /* Thin scrollbar */
 .scrollbar-thin::-webkit-scrollbar {
   width: 5px;

@@ -1,24 +1,35 @@
-import { Lock, MessageSquareText, Send, UserRound, Users } from "lucide-react";
+import {
+  Lock,
+  MessageSquareText,
+  Send,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 function MessageBubble({ message, mine }) {
   return (
-    <div className="flex h-full flex-col rounded-[28px] border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur transition duration-300 hover:shadow-md">
+    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-3 py-2 shadow-sm ${
+        className={`max-w-[82%] rounded-[22px] px-4 py-2.5 shadow-sm ${
           mine
-            ? "rounded-br-md bg-indigo-600 text-black"
-            : "rounded-bl-md bg-slate-100 text-slate-800"
+            ? "rounded-br-md bg-[#0A84FF] text-white"
+            : "rounded-bl-md bg-[#E9E9EB] text-slate-900"
         }`}
       >
-        <div className="mb-1 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] opacity-75">
+        <div
+          className={`mb-1 flex items-center gap-2 text-[11px] font-medium ${
+            mine ? "text-white/80" : "text-slate-500"
+          }`}
+        >
           <span>{mine ? "You" : message.sender}</span>
-          <span className="normal-case tracking-normal opacity-70">
+          <span>
             {message.scope === "private" && message.to
               ? `to ${message.to}`
               : "Everyone"}
           </span>
         </div>
+
         <p className="break-words text-sm leading-relaxed">
           {mine ? message.text : message.translated || message.text}
         </p>
@@ -65,11 +76,11 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="flex h-full flex-col rounded-[28px] border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur">
+    <div className="flex h-full flex-col rounded-[28px] border border-white/10 bg-white/95 p-4 shadow-sm backdrop-blur">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <MessageSquareText className="h-4 w-4 text-indigo-500" />
+            <MessageSquareText className="h-4 w-4 text-[#0A84FF]" />
             In-call chat
           </h3>
 
@@ -77,13 +88,14 @@ export default function ChatPanel({
             Group conversation and private side messages in one place.
           </p>
         </div>
+
         <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
           {visibleMessages.length} message
           {visibleMessages.length === 1 ? "" : "s"}
         </span>
       </div>
 
-      <div className="mb-4 flex gap-2 rounded-2xl bg-slate-100 p-1">
+      <div className="mb-4 flex gap-2 rounded-2xl bg-[#F2F2F7] p-1">
         <button
           type="button"
           onClick={() => setMode("group")}
@@ -98,11 +110,12 @@ export default function ChatPanel({
             Group chat
           </span>
         </button>
+
         <button
           type="button"
           onClick={() => setMode("private")}
           className={`flex-1 rounded-xl px-3 py-2 text-xs font-medium transition duration-200 hover:-translate-y-0.5 ${
-            mode === "group"
+            mode === "private"
               ? "bg-white text-slate-900 shadow-sm"
               : "text-slate-500 hover:text-slate-700"
           }`}
@@ -115,21 +128,22 @@ export default function ChatPanel({
       </div>
 
       {mode === "private" && (
-        <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-[#F8F8FA] p-3">
           <label
             htmlFor="chat-recipient"
-            className="mb-2 block text-xs font-medium uppercase tracking-0.18em text-slate-500"
+            className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500"
           >
             <span className="inline-flex items-center gap-2">
               <UserRound className="h-3.5 w-3.5" />
               Recipient
             </span>
           </label>
+
           <select
             id="chat-recipient"
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
-            className="w-full rounded-xl border text-black border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-[#0A84FF]"
           >
             <option value="">Choose participant...</option>
             {directRecipients.map((participant) => (
@@ -141,9 +155,9 @@ export default function ChatPanel({
         </div>
       )}
 
-      <div className="mb-4 min-h-220px flex-1 space-y-3 overflow-y-auto rounded-2xl bg-slate-50/80 p-3">
+      <div className="mb-4 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-[#F6F6F8] p-3">
         {visibleMessages.length === 0 ? (
-          <div className="flex h-full min-h-180px items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 text-center text-sm text-slate-400">
+          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 text-center text-sm text-slate-400">
             Start the conversation with a quick message to everyone or a private
             note to one participant.
           </div>
@@ -168,20 +182,22 @@ export default function ChatPanel({
               : "Message everyone in the room..."
           }
           rows={3}
-          className="w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20"
+          className="w-full resize-none rounded-[22px] border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20"
         />
+
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-slate-900">
+          <p className="text-xs text-slate-500">
             {mode === "private"
               ? recipient
                 ? `Only you and ${recipient} can see this message.`
                 : "Pick a recipient for a private message."
               : "Everyone in the room will see this message."}
           </p>
+
           <button
             type="submit"
             disabled={!text.trim() || (mode === "private" && !recipient)}
-            className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="rounded-full bg-[#0A84FF] px-4 py-2 text-sm font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             <span className="inline-flex items-center gap-2">
               <Send className="h-4 w-4" />

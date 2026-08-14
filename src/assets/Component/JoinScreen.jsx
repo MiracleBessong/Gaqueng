@@ -1,14 +1,21 @@
-import { ArrowRight, LogIn, PlusCircle, User, Video } from "lucide-react";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LogIn,
+  PlusCircle,
+  User,
+  Video,
+} from "lucide-react";
 import { useState } from "react";
 import LanguageSelector from "./LanguageSelector";
 
-// First screen: create or join a room by code. The code IS the password —
-// anyone with it can join. No accounts.
 export default function JoinScreen({ onJoin }) {
   const [name, setName] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [myLang, setMyLang] = useState("en");
   const [mode, setMode] = useState("create");
+  const [showRoomCode, setShowRoomCode] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -18,17 +25,18 @@ export default function JoinScreen({ onJoin }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#F2F2F7] px-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-4 rounded-3xl border border-white/50 bg-white/90 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.12)] backdrop-blur"
+        className="w-full max-w-md space-y-5 rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.10)] backdrop-blur"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-400 text-white shadow-[0_12px_30px_rgba(99,102,241,0.35)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0A84FF] via-[#5E5CE6] to-[#64D2FF] text-white shadow-[0_12px_30px_rgba(10,132,255,0.28)]">
             <Video className="h-6 w-6" />
           </div>
+
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
               Gaqueng
             </h2>
             <p className="text-sm text-slate-500">
@@ -40,56 +48,92 @@ export default function JoinScreen({ onJoin }) {
         <div>
           <label
             htmlFor="name-input"
-            className="block text-sm font-medium mb-2"
+            className="mb-2 block text-sm font-medium text-slate-800"
           >
             Your name
           </label>
+
           <div className="relative">
             <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
+              id="name-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Ada"
-              className="w-full rounded-xl border border-slate-300 py-3 pl-11 pr-4 outline-none transition duration-200 focus:ring-2 focus:ring-indigo-500 hover:border-slate-400"
+              className="w-full rounded-[20px] border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition duration-200 focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="language" className="block text-sm font-medium mb-2">
+          <label
+            htmlFor="language"
+            className="mb-2 block text-sm font-medium text-slate-800"
+          >
             Your language (you speak + want to hear)
           </label>
+
           <LanguageSelector value={myLang} onChange={setMyLang} />
         </div>
 
         <div>
-          <label htmlFor="room-code" className="block text-sm font-medium mb-2">
+          <label
+            htmlFor="room-code"
+            className="mb-2 block text-sm font-medium text-slate-800"
+          >
             Room code (your secret password)
           </label>
-          <input
-            id="room-code"
-            value={roomCode}
-            onChange={(e) => setRoomCode(e.target.value)}
-            placeholder="e.g. CLASS-7B"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 uppercase"
-          />
+
+          <div className="relative">
+            <input
+              id="room-code"
+              type={showRoomCode ? "text" : "password"}
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              placeholder="e.g. CLASS-7B"
+              className="w-full rounded-[20px] border border-slate-300 bg-white px-4 py-3 pr-12 text-sm uppercase text-slate-900 placeholder:text-slate-400 outline-none transition duration-200 focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowRoomCode((value) => !value)}
+              className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+              aria-label={showRoomCode ? "Hide room code" : "Show room code"}
+              title={showRoomCode ? "Hide room code" : "Show room code"}
+            >
+              {showRoomCode ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
 
-        <div className="flex gap-2 text-sm">
+        <div className="flex gap-2 rounded-2xl bg-[#F2F2F7] p-1 text-sm">
           <button
             type="button"
             onClick={() => setMode("create")}
-            className={`flex-1 py-2 rounded-lg ${mode === "create" ? "bg-indigo-600 text-white" : "bg-slate-100"}`}
+            className={`flex flex-1 cursor-pointer items-center justify-center rounded-xl px-3 py-2.5 font-medium transition duration-200 ${
+              mode === "create"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
           >
             <span className="inline-flex items-center gap-2">
               <PlusCircle className="h-4 w-4" />
               Create new room
             </span>
           </button>
+
           <button
             type="button"
             onClick={() => setMode("join")}
-            className={`flex-1 py-2 rounded-lg ${mode === "join" ? "bg-indigo-600 text-white" : "bg-slate-100"}`}
+            className={`flex flex-1 cursor-pointer items-center justify-center rounded-xl px-3 py-2.5 font-medium transition duration-200 ${
+              mode === "join"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
           >
             <span className="inline-flex items-center gap-2">
               <LogIn className="h-4 w-4" />
@@ -100,7 +144,7 @@ export default function JoinScreen({ onJoin }) {
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700"
+          className="w-full cursor-pointer rounded-full bg-[#0A84FF] py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED]"
         >
           <span className="inline-flex items-center gap-2">
             <ArrowRight className="h-4 w-4" />

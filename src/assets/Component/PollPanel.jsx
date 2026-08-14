@@ -9,9 +9,9 @@ import { useMemo, useState } from "react";
 
 function ProgressBar({ value }) {
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5E5EA]">
       <div
-        className="h-full rounded-full bg-indigo-500 transition-all duration-300"
+        className="h-full rounded-full bg-[#0A84FF] transition-all duration-300"
         style={{ width: `${value}%` }}
       />
     </div>
@@ -43,6 +43,7 @@ export default function PollPanel({
 
   const handleCreate = (e) => {
     e.preventDefault();
+
     const options = optionsText
       .split("\n")
       .map((item) => item.trim())
@@ -60,10 +61,10 @@ export default function PollPanel({
   };
 
   return (
-    <div className="flex h-full flex-col rounded-[28px] border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur transition duration-300 hover:shadow-md">
+    <div className="flex h-full flex-col rounded-[28px] border border-white/10 bg-white/95 p-4 shadow-sm backdrop-blur transition duration-300 hover:shadow-md">
       <div className="mb-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-          <BarChart3 className="h-4 w-4 text-amber-500" />
+          <BarChart3 className="h-4 w-4 text-[#0A84FF]" />
           Live polls
         </h3>
 
@@ -74,7 +75,7 @@ export default function PollPanel({
 
       <form
         onSubmit={handleCreate}
-        className="mb-5 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+        className="mb-5 space-y-3 rounded-2xl border border-slate-200 bg-[#F8F8FA] p-4"
       >
         <div>
           <label
@@ -88,7 +89,7 @@ export default function PollPanel({
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="What should we decide next?"
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 placeholder:text-slate-400"
+            className="w-full rounded-[18px] border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20"
           />
         </div>
 
@@ -105,7 +106,7 @@ export default function PollPanel({
             onChange={(e) => setOptionsText(e.target.value)}
             rows={4}
             placeholder={"Option 1\nOption 2\nOption 3"}
-            className="w-full resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 placeholder:text-slate-400"
+            className="w-full resize-none rounded-[18px] border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20"
           />
           <p className="mt-2 text-xs text-slate-500">
             Put one option on each line. At least 2 options are required.
@@ -114,7 +115,7 @@ export default function PollPanel({
 
         <button
           type="submit"
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+          className="rounded-full bg-[#0A84FF] px-4 py-2 text-sm font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED]"
         >
           <span className="inline-flex items-center gap-2">
             <PlusCircle className="h-4 w-4" />
@@ -125,7 +126,7 @@ export default function PollPanel({
 
       <div className="flex-1 space-y-4 overflow-y-auto">
         {activePolls.length === 0 && closedPolls.length === 0 ? (
-          <div className="flex `min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 text-center text-sm text-slate-400">
+          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-[#F6F6F8] px-6 text-center text-sm text-slate-400">
             No polls yet. Launch one to capture a quick decision from the room.
           </div>
         ) : null}
@@ -137,28 +138,31 @@ export default function PollPanel({
           return (
             <div
               key={poll.id}
-              className="rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4"
+              className="rounded-[24px] border border-blue-100 bg-[#F4F8FF] p-4"
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-indigo-500">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#0A84FF]">
                     <span className="inline-flex items-center gap-1.5">
                       <Vote className="h-3.5 w-3.5" />
                       Live poll
                     </span>
                   </p>
+
                   <h4 className="mt-1 text-sm font-semibold text-slate-900">
                     {poll.question}
                   </h4>
+
                   <p className="mt-1 text-xs text-slate-500">
                     Created by {poll.createdBy} · {totalVotes}/
                     {participantCount} voted
                   </p>
                 </div>
+
                 <button
                   type="button"
                   onClick={() => onClosePoll(poll.id)}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-100"
                 >
                   <span className="inline-flex items-center gap-2">
                     <XCircle className="h-4 w-4" />
@@ -172,10 +176,12 @@ export default function PollPanel({
                   const voteCount = Object.values(poll.votes).filter(
                     (vote) => vote === option,
                   ).length;
+
                   const percent =
                     totalVotes > 0
                       ? Math.round((voteCount / totalVotes) * 100)
                       : 0;
+
                   const selected = myVote === option;
 
                   return (
@@ -183,10 +189,10 @@ export default function PollPanel({
                       key={option}
                       type="button"
                       onClick={() => onVote(poll.id, option)}
-                      className={`w-full rounded-2xl border p-3 text-left transition duration-200 hover:-translate-y-0.5 ${
+                      className={`w-full rounded-[20px] border p-3 text-left transition duration-200 hover:-translate-y-0.5 ${
                         selected
-                          ? "border-indigo-400 bg-white shadow-sm"
-                          : "border-slate-200 bg-white/80 hover:border-indigo-200 hover:shadow-sm"
+                          ? "border-[#0A84FF] bg-white shadow-sm"
+                          : "border-slate-200 bg-white/90 hover:border-blue-200 hover:shadow-sm"
                       }`}
                     >
                       <div className="mb-2 flex items-center justify-between gap-3">
@@ -224,7 +230,7 @@ export default function PollPanel({
               return (
                 <div
                   key={poll.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                  className="rounded-[24px] border border-slate-200 bg-[#F6F6F8] p-4"
                 >
                   <div className="mb-3">
                     <h5 className="text-sm font-semibold text-slate-900">
@@ -241,6 +247,7 @@ export default function PollPanel({
                       const voteCount = Object.values(poll.votes).filter(
                         (vote) => vote === option,
                       ).length;
+
                       const percent =
                         totalVotes > 0
                           ? Math.round((voteCount / totalVotes) * 100)
@@ -249,7 +256,7 @@ export default function PollPanel({
                       return (
                         <div
                           key={option}
-                          className="rounded-2xl border border-slate-200 bg-white p-3"
+                          className="rounded-[20px] border border-slate-200 bg-white p-3"
                         >
                           <div className="mb-2 flex items-center justify-between gap-3">
                             <span className="text-sm font-medium text-slate-800">

@@ -9,7 +9,7 @@ import {
   Sparkles,
   Square,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSpeechRecognition } from "../Hooks/useSpeechRecognition";
 import ConversationHistory from "./ConversationHistory";
 import LanguageSelector from "./LanguageSelector";
@@ -27,23 +27,18 @@ export default function AssistantPanel({
 }) {
   const [question, setQuestion] = useState("");
 
-  // Separate, isolated speech-recognition instance just for talking to the
-  // assistant — independent of the main meeting mic, so using one never
-  // interrupts the other.
   const {
-      listening: askListening,
-      start: startAskMic,
-      stop: stopAskMic,
-    } = useSpeechRecognition({
-      lang: assistant.assistantLang || "en",
-      onResult: (text) => setQuestion((q) => (q ? `${q} ${text}` : text)),
-    });
+    listening: askListening,
+    start: startAskMic,
+    stop: stopAskMic,
+  } = useSpeechRecognition({
+    lang: assistant.assistantLang || "en",
+    onResult: (text) => setQuestion((q) => (q ? `${q} ${text}` : text)),
+  });
 
-    // Let RoomScreen know whether this mic is active (and how to stop it),
-    // so it can release the mic before the main meeting mic tries to use it.
-    useEffect(() => {
-      onAskMicActiveChange?.(askListening, stopAskMic);
-    }, [askListening, stopAskMic, onAskMicActiveChange]);
+  useEffect(() => {
+    onAskMicActiveChange?.(askListening, stopAskMic);
+  }, [askListening, stopAskMic, onAskMicActiveChange]);
 
   const handleAsk = (e) => {
     e.preventDefault();
@@ -56,18 +51,16 @@ export default function AssistantPanel({
     if (askListening) {
       stopAskMic();
     } else {
-      // The main meeting mic and this one can't both hold the browser's
-      // microphone at once — pause the main mic first if it's running.
       if (mainMicListening) onStopMainMic?.();
       startAskMic();
     }
   };
 
   return (
-    <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4 space-y-3">
-      <div className="flex items-center justify-between">
+    <div className="rounded-[28px] border border-white/10 bg-white/95 p-4 shadow-sm backdrop-blur">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-          <Bot className="h-4 w-4 text-violet-600" />
+          <Bot className="h-4 w-4 text-[#0A84FF]" />
           Meeting Assistant
         </h3>
 
@@ -75,7 +68,7 @@ export default function AssistantPanel({
           <button
             type="button"
             onClick={assistant.sleep}
-            className="text-xs text-slate-500 hover:underline"
+            className="cursor-pointer rounded-full px-2.5 py-1 text-xs text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
           >
             <span className="inline-flex items-center gap-1.5">
               <MoonStar className="h-3.5 w-3.5" />
@@ -86,7 +79,7 @@ export default function AssistantPanel({
           <button
             type="button"
             onClick={assistant.wake}
-            className="rounded-md bg-violet-600 px-2 py-1 text-xs text-white transition duration-200 hover:-translate-y-0.5 hover:bg-violet-700"
+            className="cursor-pointer rounded-full bg-[#0A84FF] px-3 py-1.5 text-xs font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED]"
           >
             <span className="inline-flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
@@ -95,30 +88,34 @@ export default function AssistantPanel({
           </button>
         )}
       </div>
+
       {assistant.awake && !assistant.assistantLang && (
         <div className="space-y-2">
           <p className="text-xs text-slate-600">
             <span className="inline-flex items-center gap-2">
-              <Languages className="h-4 w-4 text-violet-500" />
+              <Languages className="h-4 w-4 text-[#0A84FF]" />
               What language do you understand?
             </span>
           </p>
+
           <LanguageSelector
             value=""
             onChange={assistant.setLanguage}
-            label="Choose…"
+            label="Choose..."
           />
         </div>
       )}
+
       {assistant.awake && assistant.assistantLang && (
-        <form onSubmit={handleAsk} className="space-y-2">
+        <form onSubmit={handleAsk} className="space-y-3">
           <div className="flex items-center gap-2">
             <input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Summarize… / Suggest questions… / Explain…"
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-violet-500"
+              placeholder="Summarize... / Suggest questions... / Explain..."
+              className="flex-1 rounded-[18px] border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-[#0A84FF] focus:ring-2 focus:ring-[#0A84FF]/20"
             />
+
             <button
               type="button"
               onClick={handleMicToggle}
@@ -126,10 +123,10 @@ export default function AssistantPanel({
                 askListening ? "Stop dictating" : "Speak your question"
               }
               title={askListening ? "Stop dictating" : "Speak your question"}
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition duration-200 hover:-translate-y-0.5 ${
+              className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition duration-200 hover:-translate-y-0.5 ${
                 askListening
                   ? "animate-pulse bg-red-500"
-                  : "bg-violet-600 hover:bg-violet-700"
+                  : "bg-[#0A84FF] hover:bg-[#0077ED]"
               }`}
             >
               {askListening ? (
@@ -139,31 +136,34 @@ export default function AssistantPanel({
               )}
             </button>
           </div>
-          <div className="flex gap-2 flex-wrap">
+
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() =>
                 assistant.ask("Summarize what has been said so far.")
               }
-              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs transition duration-200 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50"
+              className="cursor-pointer rounded-full border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50"
             >
-              <span className="inline-flex items-center gap-1.5 text-slate-900">
+              <span className="inline-flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5" />
                 Summarize
               </span>
             </button>
+
             <button
               type="button"
               onClick={() =>
                 assistant.ask("Give me 3 questions to ask about this topic.")
               }
-              className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs transition duration-200 text-slate-900 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50"
+              className="cursor-pointer rounded-full border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50"
             >
               Suggest questions
             </button>
+
             <button
               type="submit"
-              className="rounded-md bg-violet-600 px-3 py-1 text-xs text-white transition duration-200 hover:-translate-y-0.5 hover:bg-violet-700"
+              className="cursor-pointer rounded-full bg-[#0A84FF] px-4 py-2 text-xs font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED]"
             >
               <span className="inline-flex items-center gap-1.5">
                 <Bot className="h-3.5 w-3.5" />
@@ -173,13 +173,15 @@ export default function AssistantPanel({
           </div>
         </form>
       )}
-      <div className="pt-2 border-t border-violet-200">
-        <h4 className="text-xs font-medium text-slate-600 mb-1">Recording</h4>
+
+      <div className="mt-4 border-t border-slate-200 pt-4">
+        <h4 className="mb-2 text-xs font-medium text-slate-600">Recording</h4>
+
         {recording ? (
           <button
             type="button"
             onClick={onRecord}
-            className="text-xs px-3 py-1 rounded-md bg-red-600 text-white"
+            className="cursor-pointer rounded-full bg-red-500 px-4 py-2 text-xs font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-red-400"
           >
             <span className="inline-flex items-center gap-1.5">
               <Square className="h-3.5 w-3.5 fill-current" />
@@ -190,7 +192,7 @@ export default function AssistantPanel({
           <button
             type="button"
             onClick={onRecord}
-            className="text-xs px-3 py-1 rounded-md bg-slate-700 text-white"
+            className="cursor-pointer rounded-full bg-[#0A84FF] px-4 py-2 text-xs font-medium text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED]"
           >
             <span className="inline-flex items-center gap-1.5">
               <Circle className="h-3.5 w-3.5 fill-current" />
@@ -203,7 +205,7 @@ export default function AssistantPanel({
           <a
             href={recordUrl}
             download="meeting.webm"
-            className="block text-xs text-indigo-600 mt-1 hover:underline"
+            className="mt-2 block text-xs text-[#0A84FF] hover:underline"
           >
             <span className="inline-flex items-center gap-1.5">
               <Download className="h-3.5 w-3.5" />
@@ -212,8 +214,9 @@ export default function AssistantPanel({
           </a>
         )}
       </div>
+
       {history && (
-        <div className="pt-2 border-t border-violet-200">
+        <div className="mt-4 border-t border-slate-200 pt-4">
           <ConversationHistory history={history} onClear={onClearHistory} />
         </div>
       )}
